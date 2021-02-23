@@ -1,0 +1,109 @@
+---
+title: "Lab 5"
+author: "Brett Vetter"
+date: "2021-02-23"
+output: github_document
+---
+
+Objectives
+-Rename variables
+-Create new variables
+-Summarize a dataset
+-Summarize a dataset by groups
+-Visualize the relationship between variables
+-Numerical and categorical variable
+  -Two numerical variables
+  -Three variables
+  
+```{r}
+# Load packages ---------------------------------------------
+
+library(tidyverse)
+```
+```{r}
+# Read data -----------------------------------------------
+
+iris
+iris <- as_tibble(iris)
+iris
+```
+```{r}
+# Question 1 ----------------------------------------------
+
+new_iris <- rename(iris, Sepal_Length = Sepal.Length, Sepal_Width = Sepal.Width, Petal_Length = Petal.Length, Petal_Width = Petal.Width)
+new_iris
+```
+```{r}
+# Question 2 ----------------------------------------------
+
+iris_cm <- mutate(new_iris, Sepal_Length = Sepal_Length * 10, Sepal_Width = Sepal_Width * 10, Petal_Length = Petal_Length * 10, Petal_Width = Petal_Width * 10)
+iris_cm
+```
+```{r}
+# Question 3 ----------------------------------------------
+
+iris_area <- mutate(iris_cm, Sepal_Area = Sepal_Length * Sepal_Width, Petal_Area = Petal_Length * Petal_Width)
+iris_onlyarea <- select(iris_area, Sepal_Area, Petal_Area, Species)
+iris_onlyarea
+```
+```{r}
+# Question 4 ----------------------------------------------
+
+summarize(
+  iris_cm,
+  sampl_size = n(),
+  max = max(Sepal_Length),
+  min = min(Sepal_Length),
+  range = max - min,
+  med = median(Sepal_Length),
+  q1 = quantile(Sepal_Length, probs = 0.25),
+  q3 = quantile(Sepal_Length, probs = 0.75),
+  iqr = IQR(Sepal_Length)
+)
+```
+```{r}
+# Question 5 ----------------------------------------------
+
+iris_sum <-
+  iris_cm %>%
+  group_by(Species) %>%
+  summarize(
+    sampl_size = n(),
+    mean_w = mean(Petal_Width),
+    str_dev = sd(Petal_Width),
+    var = var(Petal_Width),
+    sem = mean(Petal_Width) / sqrt(n()),
+    ci_upper = mean_w + 2 * sem,
+    ci_lower = mean_w - 2 * sem
+  ) 
+
+iris_sum
+iris_cm
+```
+```{r}
+# Question 6 ----------------------------------------------
+
+ggplot(data = iris_cm) +
+  geom_jitter(mapping = aes(x = Species, y = Petal_Width))
+```
+```{r}
+# Question 7 ----------------------------------------------
+
+ggplot(data = iris_cm) +
+  geom_jitter(mapping = aes(x = Species, y = Petal_Width)) +
+  geom_crossbar(
+    data = iris_sum,
+    mapping = aes(x = Species, y = mean_w, ymax = ci_upper, ymin = ci_lower),
+    color = "blue"
+  )
+```
+```{r}
+# Question 8 --------------------------------------------------------------
+
+ggplot(data = iris_cm) +
+  geom_point(mapping = aes(x = Petal_Length, y = Petal_Width, color = Species))
+```
+```{r}
+sessioninfo::session_info()
+
+```
